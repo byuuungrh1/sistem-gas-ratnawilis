@@ -19,7 +19,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Hidden;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 
@@ -43,11 +45,31 @@ class PenjualanResource extends Resource
                 ->default(Carbon::now())
                 ->required(),
 
-                Select::make('pelanggan_id')
-                    ->label('Pelanggan')
-                    ->relationship('pelanggan', 'nama_lengkap')
-                    ->searchable()
-                    ->required(),    
+                Select::make('nik')
+                ->label('NIK Pelanggan')
+                ->options(Pelanggan::all()->pluck('nik', 'nik')) // key dan value = nik
+                ->searchable()
+                ->preload()
+                ->live()
+                ->required()
+                ->afterStateUpdated(function ($state, Set $set) {
+                    $pelanggan = Pelanggan::where('nik', $state)->first();
+                    if ($pelanggan) {
+                        $set('nama_lengkap', $pelanggan->nama_lengkap);
+                        $set('pelanggan_id', $pelanggan->id); // ⬅️ INI YANG WAJIB DITAMBAH
+                    } else {
+                        $set('nama_lengkap', null);
+                        $set('pelanggan_id', null);
+                    }
+                }),
+           
+                TextInput::make('nama_lengkap')
+                ->label('Nama Pelanggan')
+                ->readOnly()
+                ->required(),
+
+                Hidden::make('pelanggan_id') // ⬅️ field tersembunyi untuk menyimpan ID
+                ->required(),
 
                 Select::make('id_barang')
                     ->label('Barang')
@@ -104,6 +126,10 @@ class PenjualanResource extends Resource
                 ->date('d M Y')
                 ->sortable(),
 
+                TextColumn::make('pelanggan.nik')
+                    ->label('NIK')
+                    ->sortable(),
+
                 TextColumn::make('pelanggan.nama_lengkap')
                     ->label('Pelanggan'),
 
@@ -137,6 +163,37 @@ class PenjualanResource extends Resource
             ]);
     }
 
+    // public static function beforeCreate($record)
+    // {
+    //     $pelanggan = Pelanggan::find($record->pelanggan_id);
+
+    //     if (!$pelanggan) {
+    //         Notification::make()
+    //             ->title('Pelanggan tidak ditemukan.')
+    //             ->danger()
+    //             ->send();
+
+    //         return false;
+    //     }
+
+    //     $batas = $pelanggan->status_pengambilan_gas === 'umkm' ? 8 : 4;
+
+    //     $jumlahPembelianBulanIni = Penjualan::where('pelanggan_id', $pelanggan->id)
+    //         ->whereMonth('tanggal', now()->month)
+    //         ->whereYear('tanggal', now()->year)
+    //         ->count();
+
+    //     if ($jumlahPembelianBulanIni >= $batas) {
+    //         Notification::make()
+    //             ->title("Batas pembelian gas untuk pelanggan ini telah tercapai.")
+    //             ->body("Status: {$pelanggan->status_pengambilan_gas} | Maksimal: {$batas} kali/bulan.")
+    //             ->danger()
+    //             ->send();
+
+    //         return false;
+    //     }
+    // }
+
     public static function mutateFormDataBeforeCreate(array $data): array
     {
         $pelanggan = Pelanggan::find($data['pelanggan_id']);
@@ -149,7 +206,7 @@ class PenjualanResource extends Resource
             ->whereYear('tanggal', now()->year)
             ->count();
 
-        if ($jumlahPembelianBulanIni >= $kuota) {
+        if ($jumlahPembelianBulanIni > $kuota) {
             throw ValidationException::withMessages([
                 'pelanggan_id' => "Pelanggan ini telah melebihi kuota bulanan ({$kuota} kali).",
             ]);

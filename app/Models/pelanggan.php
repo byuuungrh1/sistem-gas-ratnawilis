@@ -15,7 +15,7 @@ class pelanggan extends Model
     protected $fillable = [
         'nama_lengkap',
         'nik',
-        'no_telepon',
+        // 'no_telepon',
         'alamat',
         'status_pengambilan_gas',
         // 'jumlah_pembelian_bulan_ini',

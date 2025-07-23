@@ -62,7 +62,7 @@ class PembelianResource extends Resource
                     ->numeric()
                     ->minValue(1)
                     ->required()
-                    ->reactive()
+                    ->live(onBlur:true)
                     ->afterStateUpdated( function ($state, Set $set, Get $get) {
                         $harga = $get('harga_beli') ?? 0;
                         $set('subtotal', $state * $harga);

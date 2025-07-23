@@ -41,10 +41,10 @@ class PelangganResource extends Resource
                     ->unique(ignoreRecord: true) 
                     ->maxLength(16),
 
-                TextInput::make('no_telepon')
-                    ->label('No. Telepon')
-                    ->tel()
-                    ->required(),
+                // TextInput::make('no_telepon')
+                //     ->label('No. Telepon')
+                //     ->tel()
+                //     ->required(),
 
                 TextInput::make('alamat')
                     ->label('Alamat')
@@ -83,7 +83,7 @@ class PelangganResource extends Resource
                     ->copyMessage('NIK berhasil disalin')
                     ->copyMessageDuration(1500),
                 TextColumn::make('alamat')->label('Alamat'),
-                TextColumn::make('no_telepon')->label('No. Telepon'),
+                // TextColumn::make('no_telepon')->label('No. Telepon'),
                 TextColumn::make('status_pengambilan_gas')->label('Status Pengambilan Gas'),
                 TextColumn::make('<jumlah_pembelia></jumlah_pembelia>n_bulan_ini')->label('Jumlah Pembelian Bulan Ini')
                 ->getStateUsing(function ($record, $livewire) {

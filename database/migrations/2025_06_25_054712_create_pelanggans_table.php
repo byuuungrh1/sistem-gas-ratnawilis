@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nik')->unique(); 
             $table->string('nama_lengkap');
             $table->string('alamat');
-            $table->string('no_telepon')->nullable();
+            // $table->string('no_telepon')->nullable();
             $table->enum('status_pengambilan_gas', ['rumah_tangga', 'umkm'])->default('rumah_tangga');
             // $table->integer('jumlah_pembelian_bulan_ini')->default(0); 
             // $table->date('tanggal_terakhir_beli')->nullable();
